@@ -13,10 +13,27 @@
     <main id="main">
         <div id="header">
             <h1>Tic Tac Toe</h1>
-            <button id="new-game-btn">New Game</button>
+            <div class="rad-btn-container">
+                <button id="new-game-btn">New Game</button>
+                <select id="radio" type="radio">
+                    <option selected value="player2">Player 2</option>
+                    <option value="easy">AI Easy</option>
+                    <option value="normal">AI Normal</option>
+                    <option value="hard">AI Hard</option>
+                </select>
+            </div>
         </div>
-        <div id="game-container">
+        <div id="form-container">
+            <form id="new-player-form">
+                <input class="get-player1-name" type="text" placeholder="Player 1: ">
+                <input class="get-player2-name" type="text" placeholder="Player 2: ">
+                <button class="confirm-name-btn" type="submit">Confirm Name</button>
+            </form>
+        </div>
+        <div class="wrapper-container">
+            <div id="game-container">
             
+            </div>
         </div>
     </main>
 
