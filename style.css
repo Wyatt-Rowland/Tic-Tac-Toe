@@ -4,31 +4,43 @@ body {
     margin: 0;
     width: 100%;
     overflow: hidden;
+    aspect-ratio: 16 / 9;
 }
 
 #main {
     display: flex;
+    width: 100%;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    position: relative;
 }
 
 #header {
     display: flex;
     flex-direction: column;
     width: 100%;
+    height: 150px;
     align-items: center;
     background-color: darkblue;
     margin: 0;
     padding: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 #header h1 {
-    color: white;
+    font-size: 1.8em;
+    color: white;    
+    
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
 }
 
 #new-game-btn {
     height: 5vh;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     border-radius: 20px;
     font-size: 1em;
     background-color: orange;
@@ -77,19 +89,68 @@ body {
     border: 1px solid white;
 }
 .wrapper-container {
-    width: 80%;
-    padding-top: 80%;
+    width: 40%;
+    padding-top: 40%;
     position: relative;
 }
-@media (min-width: 600px) {
+@media (min-width: 1px) {
     .wrapper-container {
-        width: 60%;
-        padding-top: 60%;
+        width: 55%;
+        padding-top: 55%;
+    }
+    .player1 {
+        top: 18em;
+        left: 0px;
+    }
+    .player2 {
+        top: 28em;
+        right: 0px;
+    }
+}
+@media (min-width: 300px) {
+    .wrapper-container {
+        width: 45%;
+        padding-top: 45%;
+    }
+    .player1 {
+        top: 20em;
+        left: 30px;
+    }
+    .player2 {
+        top: 20em;
+        right: 30px;
     }
 }
 @media (min-width: 600px) {
+    .wrapper-container {
+        width: 35%;
+        padding-top: 35%;
+    }
     #new-game-btn, #radio {
         width: 40vw; 
+    }
+    .player1 {
+        left: 30px;
+        top: 10em;
+    }
+    .player2 {
+        right: 30px;
+        top: 10em;
+    }
+    
+}
+@media (min-width: 900px) {
+    .wrapper-container {
+        width: 35%;
+        padding-top: 35%;
+    }
+    
+}
+@media (min-width: 1600px) {
+    .wrapper-container {
+        max-width: 500px;
+        max-height: 500px;
+        padding-top: 25%;
     }
 }
 
@@ -147,4 +208,24 @@ body {
 #new-game-btn:hover,
 #radio:hover {
     filter: brightness(0.7);
+}
+
+.player-score-container {
+    display: flex;
+    height: 10em;
+    width: 5em;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    position: absolute;
+    border: 1px solid white;
+    margin-top: 3em;
+    margin-right: 20px;
+    margin-left: 20px;
+}
+.score {
+    font-size: 4em;
+    padding: 0;
+    margin: 0;
 }
