@@ -67,7 +67,6 @@ body {
     align-items: center;
     justify-content: space-between;
     height: auto;
-    border: 1px solid black;
     margin-bottom: 30px;
 }
 #new-game-btn, 
@@ -168,41 +167,44 @@ body {
     align-items: center;
     justify-content: center;
     width: 30%;
-    height: 20vh;
+    height: 25vh;
     border: 4px double black;
     border-radius: 20px;
     background-color: grey;
     text-align: left;
 }
 
-.get-player1-name,
-.get-player2-name {
+.get-player1-name-input,
+.get-player2-name-input {
     display: block;
-    margin: auto;
-    margin-bottom: 3vh;
     width: 60%;
     padding: 0.5em 1em 0.5em 1em;
     color: white;
     background-color: darkblue;
     border-radius: 20px;
+    margin-bottom: 10px;
+    margin-left: 10px;
 }
-.get-player1-name::placeholder,
-.get-player2-name::placeholder {
+.get-player1-name-input::placeholder,
+.get-player2-name-input::placeholder {
     color: white;
 }
-.get-player1-name:focus,
-.get-player2-name:focus {
+.get-player1-name-input:focus,
+.get-player2-name-input:focus {
     box-shadow: 4px 5px 5px black;
 }
 
 .confirm-name-btn {
     height: 4vh;
     width: 60%;
+    margin-left: 10px;
     background-color: orange;
     color: white;
     border-radius: 20px;
-    margin-left: 15%;
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .confirm-name-btn:hover,
 #new-game-btn:hover,
@@ -219,7 +221,6 @@ body {
     align-items: center;
     color: white;
     position: absolute;
-    border: 1px solid white;
     margin-top: 3em;
     margin-right: 20px;
     margin-left: 20px;
