@@ -1,33 +1,53 @@
+// This should santize the users input and prevent XSS attacks. This is for security reasons
+const sanitizeModule = (function(){
+    const sanitizeInput = (input) => {
+        // Creates an empty, invisible div
+            const div = document.createElement('div');
+            //sets the div to input value
+            div.textContent = input;
+            // returns only its innerHTML, which prevents any of it from adding to my html
+            return div.innerHTML;
+        }
+    return { sanitizeInput };
+})();
 // This will get dom elements one time
 const domElements = {
     mainElement: document.getElementById('main')
 };
-
-// This should santize the users input and ensure it fits the criteria. 
-const sanitizeModule = (function(){
-    const sanitizeInput = (input) => {
-        if (input && input.length >= 1 && input.length <= 10 && /^[a-zA-Z0-9!@#$%^&*()_+,\-./:;<=>?@[\]^_`{|}~]+$/.test(input)){
-            const div = document.createElement('div');
-            div.textContent = input;
-            return { value: div.innerHTML, valid: true };
-        }
-        return { value: null, valid: false };
-    }
-    return {sanitizeInput}
-})();
-
-// This gets radio value, as well as sets a variable name for player 2 name to be used
+// Get all helpers value here so I don't need to type querySelector as much
 const domHelpers = {
     getRadioValue: function() {
         return domElements.mainElement.querySelector('#radio').value;
     },
-    sanitizedPlayer2Name: function() {
+    player1NameInput:  function() {
+        return sanitizeModule.sanitizeInput(domElements.mainElement.querySelector('.get-player1-name-input').value);
+    },
+    player2NameInput: function(){
         return sanitizeModule.sanitizeInput(domElements.mainElement.querySelector('.get-player2-name-input').value);
     },
     getForm: function() {
-        return domElements.mainElement.querySelector('#form-container')
+        return domElements.mainElement.querySelector('#form-container');
     }
 };
+
+
+const validationModule = (function() {
+    const isValidInput = (input) => {
+        return input && input.length >= 1 && input.length <= 10 && /^[a-zA-Z0-9!@#$%^&*()_+,\-./:;<=>?@[\]^_`{|}~]+$/.test(input);
+    };
+    const validatePlayerName = (input) => {
+        if (isValidInput(input)) {
+            return true;
+        } else if (domHelpers.getRadioValue() !== 'player2') {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    return { validatePlayerName } 
+})();
+
+
 
 
 // This will be a module that will contain the gameBoard
@@ -77,10 +97,14 @@ const formControl = (function() {
 })();
 
 // Event listener to show button
-const listener = () => {
-    const newGameBtn = domElements.mainElement.querySelector('#new-game-btn');
-    newGameBtn.addEventListener('click', formControl.showForm);
-}
+const listenerModule = (() => {
+    const listener = () => {
+        const newGameBtn = domElements.mainElement.querySelector('#new-game-btn');
+        newGameBtn.addEventListener('click', formControl.showForm);
+    }
+     return { listener }; 
+})();
+    
 
 
 // Creates players that can share characteristics
@@ -130,34 +154,36 @@ const elementsModule = (function() {
 const renderModule = (function() {
     const player1Name = domElements.mainElement.querySelector('#player1-name');
     const player2Name = domElements.mainElement.querySelector('#player2-ai-name');
+    const inputPlayer1Placeholder = domElements.mainElement.querySelector('.get-player1-name-input').getAttribute('placeholder');
+    const inputPlayer2Placeholder = domElements.mainElement.querySelector('.get-player1-name-input').getAttribute('placeholder')
+
 
     const renderPlayerInfo = () => {
-        const player1NameInput = domElements.mainElement.querySelector('.get-player1-name-input').value;
-        const player2NameInput = domHelpers.getRadioValue() === 'player2' ? domHelpers.sanitizedPlayer2Name() : null;
-        // Check that it exists and sanitize it            
-        const sanitizedPlayerName = sanitizeModule.sanitizeInput(player1NameInput)
-
-        if (!sanitizedPlayerName.valid) {
-            domElements.mainElement.querySelector('.get-player1-name-input').value = 'REQUIRED';
-            return;
-        } 
-        player1Name.textContent = sanitizedPlayerName.value;
-
-        // Check if the radio value is player 2, and if it is, then make sure it exists. 
-        if (domHelpers.getRadioValue() === 'player2') {
-            const player2NameValidation = domHelpers.sanitizedPlayer2Name();
-            if (!player2NameValidation.valid) {
-                domElements.mainElement.querySelector('.get-player2-name-input').value = 'REQUIRED';
-                return;
+        const renderPlayer1 = (() => {
+            if (validationModule.validatePlayerName(domHelpers.player1NameInput) === false) {
+                inputPlayer1Placeholder.textContent = "REQUIRED"
+            } else if (validationModule.validatePlayerName(domHelpers.player1NameInput) === true) {
+                player1Name.textContent = domHelpers.player1NameInput;
+            } 
+        })();
+        const renderPlayer2 = (() => {
+            if (validationModule.validatePlayerName(domHelpers.player2NameInput) === false) {
+                inputPlayer2Placeholder.textContent = "REQUIRED"
+            } else if (validationModule.validatePlayerName(domHelpers.player2NameInput) === true) {
+                if (domHelpers.getRadioValue === 'player2') {
+                    player2Name.textContent === domHelpers.player2NameInput;
+                } else {
+                    let aiName = '';
+                    switch (domHelpers.getRadioValue()) {
+                        case 'easy': aiName = "Locke"; break;
+                        case 'normal': aiName = "Tom"; break;
+                        case 'hard': aiName = "John"; break;
+                        default: aiName = domHelpers.player2NameInput; break;
+                    }
+                    player2Name.textContent = aiName;
+                }
             }
-            player2Name.textContent = player2NameValidation.value;
-        } else if (domHelpers.getRadioValue() === 'easy') {
-            player2Name.textContent = 'Buck'
-        } else if (domHelpers.getRadioValue() === 'normal') {
-            player2Name.textContent = 'Tom'
-        } else {
-            player2Name.textContent = 'John'
-        }
+        })();
     };
     
     const updateScores = (winner, loser) => {
@@ -190,4 +216,4 @@ const displayModule = (function(){
 
 })();
 
-listener();
+listenerModule.listener();
