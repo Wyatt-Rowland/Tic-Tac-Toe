@@ -156,6 +156,10 @@ body {
 .grid-item {
     background-color: white;
     border: 1px solid blue;
+    font-size: 3em;
+    align-items: center;
+    text-align: center;
+    font-family: 'Permanant Marker', cursive;
 }
 
 #form-container {

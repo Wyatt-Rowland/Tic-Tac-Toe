@@ -1,15 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // This should santize the users input and prevent XSS attacks. This is for security reasons
-    const sanitizeModule = (function(){
-        const sanitizeInput = (input) => {
-            // Creates an empty, invisible div
-                const div = document.createElement('div');
-                //sets the div to input value
-                div.textContent = input;
-                // returns only its innerHTML, which prevents any of it from adding to my html
-                return div.innerHTML;
-            }
+    const sanitizeModule = (() => {
+        // Creates an empty, invisible div
+        const div = document.createElement('div');
+        const sanitizeInput = (input) => {     
+            div.textContent = input;
+            // returns only its innerHTML, which prevents any of it from adding to my html
+            return div.innerHTML;
+        }
         return { sanitizeInput };
     })();
     // This will get dom elements one time
@@ -17,55 +16,28 @@ document.addEventListener('DOMContentLoaded', () => {
         mainElement: document.getElementById('main')
     };
     // Get all helpers value here so I don't need to type querySelector as much
-    const domHelpers = {
-        getRadioValue: function() {
-            return domElements.mainElement.querySelector('#radio').value;
-        },
-        player1NameInput:  function() {
-            return sanitizeModule.sanitizeInput(domElements.mainElement.querySelector('.get-player1-name-input').value);
-        },
-        player2NameInput: function(){
-            return sanitizeModule.sanitizeInput(domElements.mainElement.querySelector('.get-player2-name-input').value);
-        },
-        getForm: function() {
-            return domElements.mainElement.querySelector('#form-container');
+    const domHelpers = (() => {
+        const queryMain = (selector) => document.getElementById('main').querySelector(selector);
+        return {
+            getRadioValue: () => queryMain('#radio').value,
+            player1NameInput: () => sanitizeModule.sanitizeInput(queryMain('.get-player1-name-input').value),
+            player2NameInput: () => sanitizeModule.sanitizeInput(queryMain('.get-player2-name-input').value),
+            getForm: () => queryMain('#form-container')
         }
-    };
-
-
-    // This will be a module that will contain the gameBoard
-    const boardModule = (() => {
-        // Clear game board
-        const _clearBoard = () => {
-            const gridElements = domElements.mainElement.querySelectorAll('.grid-item');
-            gridElements.forEach(element => element.parentNode.removeChild(element));
-        };
-
-        const createBoard = function() {
-            _clearBoard();           
-            const gameContainer = domElements.mainElement.querySelector('#game-container');
-            // Loop to create the rows
-            for (let i = 0; i < 9; i++) {
-                const gridItem = document.createElement('div');
-                gridItem.classList.add('grid-item');
-                gameContainer.appendChild(gridItem);
-                }
-            }       
-        // Return it so I can call it later
-        return {createBoard}
+        
     })();
+
 
     // Function to show the form, and hide the form 
 
-    const formControl = (function() {
+    const formControl = (() => {
         // Function to show the form for names
         const showForm = () => {
-            let form = domHelpers.getForm();
+            const form = domHelpers.getForm();
             form.classList.add('active');
             form.style.opacity = 1;
-            if (domHelpers.getRadioValue() !== 'player2') {
-                form.querySelector('.get-player2-name-input').style.opacity = 0;
-            }
+            const player2Input = form.querySelector('.get-player2-name-input');
+            player2Input.style.opacity = (domHelpers.getRadioValue() !== 'player2') ? 0 : 1;
         }
         // Function to hide form
         const hideForm = () => {
@@ -79,54 +51,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     })();
 
-       
-
-
     // Creates players that can share characteristics
-
-    const createPlayer = (name, symbol, score) => {
-        return {
-            name,
-            symbol,
-            score,
-            makeMove: function(e) {
-                if (e.target.textContent !== '') return;
-                e.target.textContent = this.symbol;
-                // Determine current Player
-                let currentPlayer = player1;
-            }
-        }
-    }
-
-
-    const elementsModule = (function() {
-        function createElement(tag, attribute = {}, children = []) {
-            const element = document.createElement(tag);
-            for (let key in attribute) {
-                if (key === "textContent") {
-                    element.textContent = attribute[key];
-                } else {
-                    element.setAttribute(key, attribute[key]);
-                }
-            }
-            children.forEach(child => {
-                if (typeof child === 'string') {
-                    element.appendChild(document.createTextNode(child));
-                } else {
-                    element.appendChild(child);
-                }
-            });
-            return element;
-        }
-        return {
-            createElement: createElement
-        }
-    })();
 
     const validationModule = (() => {
         const isValidInput = (input) => {            
-            console.log("input:", input)
-
             return input && input.length >= 1 && input.length <= 10 && /^[a-zA-Z0-9!@#$%^&*()_+,\-./:;<=>?@[\]^_`{|}~]+$/.test(input);
         };
         const validatePlayerName = (input) => {
@@ -185,23 +113,149 @@ document.addEventListener('DOMContentLoaded', () => {
         
     })();
 
+    const playerModule = (() => {
+        const createPlayer = (name, symbol, score) => {
+            return {
+                name,
+                symbol,
+                score,
+                makeMove: (dataIndex, gameBoard) => {
+                    if (gameBoard[dataIndex] === null) {
+                        gameBoard[dataIndex] = symbol;
+                        return true;
+                    }
+                    return false;
+                }
+            }
+        }
+    
+        const createAI = (score) => {
+
+        }   
+        return {
+            createPlayer,
+            createAI
+        }
+    })(); 
+    
+    // This will be a module that will contain the gameBoard
+    const boardModule = (() => {
+        const gameContainer = domElements.mainElement.querySelector('#game-container');
+        // Clear game board            
+
+        const _clearBoard = () => {
+            gameContainer.innerHTML = '';
+        };
+
+        const createBoard = () => {
+            _clearBoard();               
+            // Loop to create the rows
+            for (let i = 0; i < 9; i++) {
+                const gridItem = document.createElement('div');
+                gridItem.classList.add('grid-item');
+                gridItem.setAttribute('data-index', i);
+                gameContainer.appendChild(gridItem);
+            }
+            const addBoardListener = () => {
+                
+            }
+        }      
+        // Return it so I can call it later
+        return { createBoard };
+    })();
+
     // This module will contain game information
     const gameModule = (() => {
-    
+        let player1 = null;
+        let player2 = null;
+        const gameContainer = domElements.mainElement.querySelector('#game-container');
+
+        const initializePlayers = (player1Name, player2Name) => {
+            player1 = playerModule.createPlayer(player1Name, "X", 0);
+            if (domHelpers.getRadioValue === 'player2') {
+                //TODO
+            } else {
+                player2 = playerModule.createPlayer(player2Name, "O", 0);
+            }
+        }
+
+        const getPlayer1 = () => player1;
+        const getPlayer2 = () => player2;
+
+        let board = Array(9).fill(null);
+        let currentPlayer = '';
+        
+        const initilizeBoardListeners = () => {
+            board
+            gameContainer.addEventListener('click', (e) => {
+                if (e.target.classList.contains('grid-item')) {
+                    const dataIndex = e.target.getAttribute('data-index');
+                    if (currentPlayer.value === player1) {
+                        player1.makeMove(dataIndex);
+                        switchPlayer();
+                    } else {
+                        player2.makeMove(dataIndex);
+                        switchPlayer();
+                    }
+                }
+            });
+        }
+
+        const setBoard = (index, symbol) => {
+            if (board[index] === null) {
+                board[index] = symbol;
+                
+            } else if (board[index] !== null) {
+                return
+            } 
+        };
+
+        const switchPlayer = () => {
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            
+        }
+
+        const checkWin = () => {
+            //TODO
+        }
+
+        const checktie = () => {
+            //TODO
+        }
+
+        const resetGame = () => {
+         //TODO
+
+        }
+
+        return {
+            initializePlayers,
+            board,
+            getPlayer1,
+            getPlayer2,
+            initilizeBoardListeners,
+            setBoard,
+            switchPlayer,
+            checkWin,
+            checktie,
+            resetGame,
+            currentPlayer
+        }
     })();
 
     // Event listener to show button
-    const listenerModule = (() => {
-        const listener = () => {
+    const eventListenerModule = (() => {
+        const initilizeEventListeners = () => {
             const newGameBtn = domElements.mainElement.querySelector('#new-game-btn');
             newGameBtn.addEventListener('click', formControl.showForm);            
 
             const radioButtons = domElements.mainElement.querySelectorAll('[name="radio"]');
             radioButtons.forEach(radio => {
                 radio.addEventListener('change', renderModule.updatePlayer2Name);
+                radio.bind(formControl.hideForm());
             });
         } 
-        return { listener }; 
+        return { initilizeEventListeners }; 
     })();
      
     // This is the module for the display
@@ -216,11 +270,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         validationModule.validatePlayerName(domHelpers.player2NameInput())) {
                             formControl.hideForm(); 
                             boardModule.createBoard();
+                            gameModule.initializePlayers();
+                            gameModule.initilizeBoardListeners();
+                            const currentPlayer1 = gameModule.getPlayer1();
+                            const currentPlayer2 = gameModule.getPlayer2();
                         } 
                     renderModule.renderPlayerInfo();
                 });
-            })();    
+            })();   
     })();
 
-    listenerModule.listener();
+    eventListenerModule.initilizeEventListeners();
 });
