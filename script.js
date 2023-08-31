@@ -18,10 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Get all helpers value here so I don't need to type querySelector as much
     const domHelpers = (() => {
         const queryMain = (selector) => document.getElementById('main').querySelector(selector);
+        const _dirtyPlayer1 = () => queryMain('.get-player1-name-input').value;
+        const _dirtyPlayer2 = () => queryMain('.get-player2-name-input').value;
         return {
             getRadioValue: () => queryMain('#radio').value,
-            player1NameInput: () => sanitizeModule.sanitizeInput(queryMain('.get-player1-name-input').value),
-            player2NameInput: () => sanitizeModule.sanitizeInput(queryMain('.get-player2-name-input').value),
+            cleanPlayer1: () => sanitizeModule.sanitizeInput(_dirtyPlayer1),
+            cleanPlayer2: () => sanitizeModule.sanitizeInput(_dirtyPlayer2),
             getForm: () => queryMain('#form-container')
         }
         
@@ -54,20 +56,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // Creates players that can share characteristics
 
     const validationModule = (() => {
-        const isValidInput = (input) => {            
+        const radioValue = domHelpers.getRadioValue();
+        const _isValidNameInput = (input) => {            
             return input && input.length >= 1 && input.length <= 10 && /^[a-zA-Z0-9!@#$%^&*()_+,\-./:;<=>?@[\]^_`{|}~]+$/.test(input);
         };
-        const validatePlayerName = (input) => {
-            if (domHelpers.getRadioValue() !== 'player2' || isValidInput(input)) {
+        const _validatePlayerName = (input) => {
+            if (radioValue !== 'player2' || _isValidNameInput(input)) {
                 return true;
             } else {
                 return false;
             }
         }
-        return { validatePlayerName } 
+        const validPlayer1 = () => _validatePlayerName(domHelpers.cleanPlayer1());
+        const validPlayer2 = () => _validatePlayerName(domHelpers.cleanPlayer2());
+        return { validPlayer1, validPlayer2 } 
     })();
 
-    
+    console.log(domHelpers.cleanPlayer1())
+    console.log(validationModule.validPlayer1())
 
     // Creates players displays, and shows their names and score
     const renderModule = (() => {
@@ -83,19 +89,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     case 'easy': aiName = "Locke"; break;
                     case 'normal': aiName = "Tom"; break;
                     case 'hard': aiName = "John"; break;
-                    default: aiName = "Name Here"; break;
+                    default: aiName = "Player 2"; break;
                 }
                 player2Name.textContent = aiName;
         }
 
         const renderPlayerInfo = () => {
-            if (validationModule.validatePlayerName(domHelpers.player1NameInput()) === false || validationModule.validatePlayerName(domHelpers.player2NameInput()) === false) {
+            if (validationModule.validPlayer1() === false || validationModule.validPlayer2() === false) {
                 player1Input.placeholder = "REQUIRED";
                 player2Input.placeholder = "REQUIRED";
-            } else if (validationModule.validatePlayerName(domHelpers.player1NameInput()) === true || validationModule.validatePlayerName(domHelpers.player2NameInput()) === true) {
-                player1Name.textContent = domHelpers.player1NameInput();
+            } else if (validationModule.validPlayer1() === true || validationModule.validPlayer2() === true) {
+                player1Name.textContent = player1Input;
                 if (domHelpers.getRadioValue() === 'player2') {
-                    player2Name.textContent = domHelpers.player2NameInput();
+                    player2Name.textContent = player2Input;
                 } 
             } 
         };
@@ -114,11 +120,11 @@ document.addEventListener('DOMContentLoaded', () => {
     })();
 
     const playerModule = (() => {
-        const createPlayer = (name, symbol, score) => {
+        const createPlayer = (name, symbol) => {
+            let score = 0;
             return {
                 name,
                 symbol,
-                score,
                 makeMove: (dataIndex, gameBoard) => {
                     if (gameBoard[dataIndex] === null) {
                         gameBoard[dataIndex] = symbol;
@@ -171,11 +177,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const gameContainer = domElements.mainElement.querySelector('#game-container');
 
         const initializePlayers = (player1Name, player2Name) => {
-            player1 = playerModule.createPlayer(player1Name, "X", 0);
-            if (domHelpers.getRadioValue === 'player2') {
+            player1 = playerModule.createPlayer(domHelpers.cleanPlayer1(), "X", 0);
+            if (domHelpers.getRadioValue() === 'player2') {
                 //TODO
             } else {
-                player2 = playerModule.createPlayer(player2Name, "O", 0);
+                player2 = playerModule.createPlayer(domHelpers.cleanPlayer2(), "O", 0);
             }
         }
 
@@ -183,14 +189,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const getPlayer2 = () => player2;
 
         let board = Array(9).fill(null);
-        let currentPlayer = '';
+        let currentPlayer = player1;
         
         const initilizeBoardListeners = () => {
             board
             gameContainer.addEventListener('click', (e) => {
                 if (e.target.classList.contains('grid-item')) {
                     const dataIndex = e.target.getAttribute('data-index');
-                    if (currentPlayer.value === player1) {
+                    if (currentPlayer === player1) {
                         player1.makeMove(dataIndex);
                         switchPlayer();
                     } else {
@@ -201,17 +207,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        const setBoard = (index, symbol) => {
-            if (board[index] === null) {
-                board[index] = symbol;
-                
-            } else if (board[index] !== null) {
-                return
-            } 
+        const setBoard = (gridItem) => {
+            if (player1.makeMove === true || player2.makeMove === true) {
+                gridItem[dataIndex].innerHTML = symbol;
+            }
         };
 
         const switchPlayer = () => {
-            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            currentPlayer = currentPlayer === player1 ? player2 : player1;
             
         }
 
@@ -243,31 +246,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     })();
 
-    // Event listener to show button
     const eventListenerModule = (() => {
-        const initilizeEventListeners = () => {
+        const initializeEventListeners = () => {
             const newGameBtn = domElements.mainElement.querySelector('#new-game-btn');
             newGameBtn.addEventListener('click', formControl.showForm);            
 
             const radioButtons = domElements.mainElement.querySelectorAll('[name="radio"]');
             radioButtons.forEach(radio => {
-                radio.addEventListener('change', renderModule.updatePlayer2Name);
-                radio.bind(formControl.hideForm());
+                radio.addEventListener('change', () => {
+                    renderModule.updatePlayer2Name();
+                    radio.bind(formControl.hideForm());
+                });
             });
         } 
-        return { initilizeEventListeners }; 
+        return { initializeEventListeners }; 
     })();
      
-    // This is the module for the display
-    const displayModule = (function(){
+    const displayModule = (() => {
         const displayBtn = domElements.mainElement.querySelector('.confirm-name-btn');    
-            // Listen for the New Game Button to be pressed, and then display the board. 
             const displayListener = (() => { 
                 displayBtn.addEventListener('click', (e) => {             
                     e.preventDefault();
-
-                    if (validationModule.validatePlayerName(domHelpers.player1NameInput()) && 
-                        validationModule.validatePlayerName(domHelpers.player2NameInput())) {
+                    if (validationModule.validPlayer1() && 
+                        validationModule.validPlayer2()) {
                             formControl.hideForm(); 
                             boardModule.createBoard();
                             gameModule.initializePlayers();
@@ -280,5 +281,5 @@ document.addEventListener('DOMContentLoaded', () => {
             })();   
     })();
 
-    eventListenerModule.initilizeEventListeners();
+    eventListenerModule.initializeEventListeners();
 });
