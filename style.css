@@ -152,18 +152,23 @@ body {
         padding-top: 25%;
     }
 }
-
+.grid-item.inactive {
+    color: white;
+}
 .grid-item {
     background-color: white;
+    color: black;
     border: 1px solid blue;
-    font-size: 3em;
-    align-items: center;
-    text-align: center;
     font-family: 'Permanant Marker', cursive;
+    font-size: 2em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #form-container {
     display: flex;
+    pointer-events: none;
     flex-direction: column;
     position: absolute;
     opacity: 0;
@@ -176,6 +181,10 @@ body {
     border-radius: 20px;
     background-color: grey;
     text-align: left;
+}
+#form-container.active {
+    opacity: 1;
+    pointer-events: all;
 }
 
 .get-player1-name-input,
@@ -233,4 +242,40 @@ body {
     font-size: 4em;
     padding: 0;
     margin: 0;
+}
+
+#winner-banner {
+    position: absolute;
+    top: 2em;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+    font-size: 5em;
+    height: 40vh;
+    width: 100vw;
+    color: black;
+    background-image: linear-gradient(to bottom, orange, darkblue, orange);
+}
+.winner-text {
+    height: 1em;
+    margin: 0;
+}
+.reset {
+    padding: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border-radius: 20px;
+    border: 3px double blue;
+    font-size: .3em;
+    background-color: orange;
+    color: white;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    box-shadow: 1px 5px 5px black;
+}
+.reset:hover {
+    filter: brightness(0.6)
 }
