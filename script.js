@@ -76,6 +76,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const player2Name = domElements.mainElement.querySelector('#player2-ai-name');
         const player1Input = domElements.mainElement.querySelector('.get-player1-name-input');
         const player2Input = domElements.mainElement.querySelector('.get-player2-name-input');
+        const winnerBanner = domElements.mainElement.querySelector('#winner-banner');
+        const winnerText = domElements.mainElement.querySelector('#winner-text');
 
             // This will keep the player 2 name up-to-date
         const updatePlayer2Name = () => {
@@ -100,6 +102,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 } 
             } 
         };
+
+        const showWinnerIcon = (winnerSymbol) => {
+            console.log('I am being called')
+            let winnerName = '';
+            if (gameModule.getPlayer1().symbol === winnerSymbol) {
+                winnerName = gameModule.getPlayer1().name;
+            } else if (gameModule.getPlayer2().symbol === winnerSymbol) {
+                winnerName = gameModule.getPlayer2().name;
+            }
+            // Update banner with winner's name
+            winnerText.textContent = `${winnerName} wins!`
+            // Add active to display banner
+            winnerBanner.classList.add('active');
+        }
         
         const updateScores = (winner, loser) => {
 
@@ -108,7 +124,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return {
             renderPlayerInfo,
             updateScores,
-            updatePlayer2Name
+            updatePlayer2Name, 
+            showWinnerIcon
         }
         
         
@@ -196,9 +213,61 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        // const setBoard = (gridItem, symbol) => {
+        //     gridItem.innerHTML = symbol;
+        //     gridItem.classList.remove('inactive');
+        // };
         const setBoard = (gridItem, symbol) => {
-            gridItem.innerHTML = symbol;
             gridItem.classList.remove('inactive');
+            gridItem.innerHTML = '';
+        
+            if (symbol === 'X') {
+                const xSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                xSvg.setAttribute("viewBox", "0 0 100 100");
+                xSvg.classList.add("symbol");
+        
+                const line1 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line1.setAttribute("x1", "10");
+                line1.setAttribute("y1", "10");
+                line1.setAttribute("x2", "90");
+                line1.setAttribute("y2", "90");
+                line1.setAttribute("stroke", "black");
+                line1.setAttribute("stroke-width", "8");
+                // line1.classList.add("handwritten");                
+                line1.classList.add("handwritten-line1");
+
+        
+                const line2 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line2.setAttribute("x1", "90");
+                line2.setAttribute("y1", "10");
+                line2.setAttribute("x2", "10");
+                line2.setAttribute("y2", "90");
+                line2.setAttribute("stroke", "black");
+                line2.setAttribute("stroke-width", "8");
+                // line2.classList.add("handwritten");
+                line2.classList.add("handwritten-line2");
+
+        
+                xSvg.appendChild(line1);
+                xSvg.appendChild(line2);
+                gridItem.appendChild(xSvg);
+            } else {
+                const oSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                oSvg.setAttribute("viewBox", "0 0 100 100");
+                oSvg.classList.add("symbol");
+        
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", "50");
+                circle.setAttribute("cy", "50");
+                circle.setAttribute("r", "40");
+                circle.setAttribute("stroke", "black");
+                circle.setAttribute("stroke-width", "8");
+                circle.setAttribute("fill", "none");
+                circle.classList.add("handwritten");
+        
+                oSvg.appendChild(circle);
+                gridItem.appendChild(oSvg);
+            }
         };
 
         const switchPlayer = () => {
@@ -222,6 +291,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const [a, b, c] = winIfMatched[i];
                 if (gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c]) {         
                     endGame(true, gameBoard[a]);
+                    renderModule.showWinnerIcon(gameBoard[a]);
+                    console.log("Win detected", gameBoard[a]);
+
                     return true;
                 }
             }
@@ -265,6 +337,9 @@ document.addEventListener('DOMContentLoaded', () => {
             currentPlayer
         }
     })();
+
+
+
 
     const eventListenerModule = (() => {
         const initializeEventListeners = () => {

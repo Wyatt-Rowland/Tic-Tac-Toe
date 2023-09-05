@@ -4,7 +4,6 @@ body {
     margin: 0;
     width: 100%;
     overflow: hidden;
-    aspect-ratio: 16 / 9;
 }
 
 #main {
@@ -30,7 +29,7 @@ body {
     text-overflow: ellipsis;
 }
 #header h1 {
-    font-size: 1.8em;
+    font-size: 2em;
     color: white;    
     
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
@@ -42,19 +41,20 @@ body {
     text-overflow: ellipsis;
     white-space: nowrap;
     border-radius: 20px;
-    font-size: 1em;
+    font-size: 1.5em;
     background-color: orange;
     color: white;
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
     box-shadow: 1px 5px 5px black;
 }
+
 #radio {
     height: 5vh;
-    font-size: 1em;
+    font-size: 1.5em;
     border: 1px solid black;
     border-radius: 20px;
     padding-left: 1em;
-    padding-right: 1em;
+    padding-right: 1.4em;
     background-color: orange;
     color: white;
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
@@ -85,7 +85,6 @@ body {
     bottom: 0;
     margin-top: 30px;
     gap: 8px;
-    border: 1px solid white;
 }
 .wrapper-container {
     width: 40%;
@@ -105,6 +104,12 @@ body {
         top: 28em;
         right: 0px;
     }
+    #new-game-btn, #radio {
+        font-size: 1em;
+    }
+    .winner-text {
+        font-size: 0.6em;
+    }
 }
 @media (min-width: 300px) {
     .wrapper-container {
@@ -119,6 +124,16 @@ body {
         top: 20em;
         right: 30px;
     }
+    #new-game-btn, #radio {
+        font-size: 1.3em;
+    }
+    .winner-text {
+        font-size: 0.6em;
+    }
+    .grid-item {
+        font-size: 2em;
+    }
+    
 }
 @media (min-width: 600px) {
     .wrapper-container {
@@ -127,6 +142,7 @@ body {
     }
     #new-game-btn, #radio {
         width: 40vw; 
+        font-size: 1.5em;
     }
     .player1 {
         left: 30px;
@@ -136,14 +152,24 @@ body {
         right: 30px;
         top: 10em;
     }
-    
+    .winner-text {
+        font-size: 1.1em;
+    }
+    .grid-item {
+        font-size: 4em;
+    }
 }
 @media (min-width: 900px) {
     .wrapper-container {
         width: 35%;
         padding-top: 35%;
     }
-    
+    .winner-text {
+        font-size: 1.8em;
+    }
+    .grid-item {
+        font-size: 5em;
+    }
 }
 @media (min-width: 1600px) {
     .wrapper-container {
@@ -152,19 +178,7 @@ body {
         padding-top: 25%;
     }
 }
-.grid-item.inactive {
-    color: white;
-}
-.grid-item {
-    background-color: white;
-    color: black;
-    border: 1px solid blue;
-    font-family: 'Permanant Marker', cursive;
-    font-size: 2em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+
 
 #form-container {
     display: flex;
@@ -175,8 +189,8 @@ body {
     z-index: 1;
     align-items: center;
     justify-content: center;
-    width: 30%;
-    height: 25vh;
+    width: 20em;
+    height: 15em;
     border: 4px double black;
     border-radius: 20px;
     background-color: grey;
@@ -190,7 +204,8 @@ body {
 .get-player1-name-input,
 .get-player2-name-input {
     display: block;
-    width: 60%;
+    width: 15em;
+    height: 2em;
     padding: 0.5em 1em 0.5em 1em;
     color: white;
     background-color: darkblue;
@@ -211,6 +226,7 @@ body {
     height: 4vh;
     width: 60%;
     margin-left: 10px;
+    font-size: 1em;
     background-color: orange;
     color: white;
     border-radius: 20px;
@@ -244,7 +260,9 @@ body {
     margin: 0;
 }
 
-#winner-banner {
+.winner-banner {
+    opacity: 0;
+    pointer-events: none;
     position: absolute;
     top: 2em;
     display: flex;
@@ -256,15 +274,33 @@ body {
     font-size: 5em;
     height: 40vh;
     width: 100vw;
-    color: black;
-    background-image: linear-gradient(to bottom, orange, darkblue, orange);
+    color: white;
+    background-image: linear-gradient(
+        to bottom,
+            orange, darkblue, orange, darkblue, orange);
+    background-size: 100% 200%;
+    animation: gradient-flow 3s infinite linear;
 }
+@keyframes gradient-flow {
+    0% {
+      background-position: 0% 100%;
+    }
+    100% {
+      background-position: 0% 0%;
+    }
+}
+
 .winner-text {
     height: 1em;
-    margin: 0;
+    margin: 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: white;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
 }
 .reset {
-    padding: 4px;
+    padding: 8px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -279,3 +315,62 @@ body {
 .reset:hover {
     filter: brightness(0.6)
 }
+#winner-banner.active,
+.reset {
+    opacity: 1;
+    pointer-events: all;
+}
+.grid-item.inactive {
+    color: white;
+}
+.grid-item {
+    background-color: white;
+    color: black;
+    border: 1px solid blue;
+    font-family: 'Permanant Marker', cursive;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+
+
+.symbol {
+    width: 60%;
+    height: 60%;
+    margin: auto;
+}
+@keyframes draw {
+    to {
+        stroke-dashoffset: 0;
+    }
+} 
+@keyframes drawLine1 {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes drawLine2 {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+.handwritten-line1 {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: drawLine1 1s ease-in-out forwards;
+}
+
+.handwritten-line2 {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: drawLine2 1s ease-in-out 0.5s forwards; /* 1s delay */
+}
+
+.handwritten {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: draw 1s ease-in-out forwards;
+} 
