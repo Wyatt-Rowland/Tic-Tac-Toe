@@ -104,7 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const showWinnerIcon = (winnerSymbol) => {
-            console.log('I am being called')
             let winnerName = '';
             if (gameModule.getPlayer1().symbol === winnerSymbol) {
                 winnerName = gameModule.getPlayer1().name;
@@ -116,6 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Add active to display banner
             winnerBanner.classList.add('active');
         }
+
         
         const updateScores = (winner, loser) => {
 
@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     // If no player 2, use this as an AI factory function
-    const createAI = () => {
+    const createEasyAI = () => {
 
     }   
 
@@ -256,16 +256,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 oSvg.setAttribute("viewBox", "0 0 100 100");
                 oSvg.classList.add("symbol");
         
-                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                circle.setAttribute("cx", "50");
-                circle.setAttribute("cy", "50");
-                circle.setAttribute("r", "40");
-                circle.setAttribute("stroke", "black");
-                circle.setAttribute("stroke-width", "8");
-                circle.setAttribute("fill", "none");
-                circle.classList.add("handwritten");
-        
-                oSvg.appendChild(circle);
+                // const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                // circle.setAttribute("cx", "50");
+                // circle.setAttribute("cy", "50");
+                // circle.setAttribute("r", "40");
+                // circle.setAttribute("stroke", "black");
+                // circle.setAttribute("stroke-width", "8");
+                // circle.setAttribute("fill", "none");
+                // circle.classList.add("handwritten");
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute("d", "M 50,50 m -45,0 a 45,45 0 1,0 90,0 a 45,45 0 1,0 -90,0");
+                path.setAttribute("stroke", "black");
+                path.setAttribute("stroke-width", "8");
+                path.setAttribute("fill", "none");
+                path.classList.add("handwritten");
+
+                oSvg.appendChild(path);
+                // oSvg.appendChild(circle);
+
                 gridItem.appendChild(oSvg);
             }
         };
@@ -290,10 +298,18 @@ document.addEventListener('DOMContentLoaded', () => {
             for (let i = 0; i < winIfMatched.length; i++) {
                 const [a, b, c] = winIfMatched[i];
                 if (gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c]) {         
-                    endGame(true, gameBoard[a]);
-                    renderModule.showWinnerIcon(gameBoard[a]);
-                    console.log("Win detected", gameBoard[a]);
 
+                    const gameContainer = domElements.mainElement.querySelector('#game-container');
+                    const winningCells = [gameContainer.childNodes[a], gameContainer.childNodes[b], gameContainer.childNodes[c]];
+        
+                    winningCells.forEach(cell => {
+                        cell.style.backgroundColor = 'green';
+                    });
+
+                    endGame(true, gameBoard[a]);
+                    setTimeout(() => {
+                        renderModule.showWinnerIcon(gameBoard[a]);
+                    }, 1000)
                     return true;
                 }
             }
@@ -337,9 +353,6 @@ document.addEventListener('DOMContentLoaded', () => {
             currentPlayer
         }
     })();
-
-
-
 
     const eventListenerModule = (() => {
         const initializeEventListeners = () => {

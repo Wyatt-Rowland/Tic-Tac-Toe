@@ -245,14 +245,18 @@ body {
     display: flex;
     height: 10em;
     width: 5em;
+    white-space: nowrap;
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
     color: white;
     position: absolute;
     margin-top: 3em;
-    margin-right: 20px;
-    margin-left: 20px;
+    margin-right: 60px;
+    margin-left: 60px;
+}
+.name {
+    font-size:calc(12px + 1.5vw)
 }
 .score {
     font-size: 4em;
@@ -280,6 +284,8 @@ body {
             orange, darkblue, orange, darkblue, orange);
     background-size: 100% 200%;
     animation: gradient-flow 3s infinite linear;
+    transition: all 0.5s ease;
+    transform: scale(0);
 }
 @keyframes gradient-flow {
     0% {
@@ -305,7 +311,6 @@ body {
     text-overflow: ellipsis;
     white-space: nowrap;
     border-radius: 20px;
-    border: 3px double blue;
     font-size: .3em;
     background-color: orange;
     color: white;
@@ -319,6 +324,7 @@ body {
 .reset {
     opacity: 1;
     pointer-events: all;
+    transform: scale(1);
 }
 .grid-item.inactive {
     color: white;
@@ -366,11 +372,13 @@ body {
 .handwritten-line2 {
     stroke-dasharray: 1000;
     stroke-dashoffset: 1000;
-    animation: drawLine2 1s ease-in-out 0.5s forwards; /* 1s delay */
+    animation: drawLine2 1s ease-in-out 0.5s forwards; /* 0.5s delay */
 }
 
 .handwritten {
     stroke-dasharray: 1000;
     stroke-dashoffset: 1000;
     animation: draw 1s ease-in-out forwards;
+    transform-origin: 50% 50%;
+    transform: rotate(90deg);  /* Rotate the circle */
 } 
