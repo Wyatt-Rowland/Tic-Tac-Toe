@@ -66,7 +66,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         const validPlayer1 = () => _validatePlayerName(domHelpers.cleanPlayer1());
-        const validPlayer2 = () => _validatePlayerName(domHelpers.cleanPlayer2());
+        const validPlayer2 = () => {
+            if (radioValue !== 'player2') {
+                return true
+            }
+            return _validatePlayerName(domHelpers.cleanPlayer2()); 
+        }        
+
         return { validPlayer1, validPlayer2 } 
     })();
 
@@ -136,47 +142,75 @@ document.addEventListener('DOMContentLoaded', () => {
     // This will be a module that will contain the gameBoard
     const boardModule = (() => {
         const gameContainer = domElements.mainElement.querySelector('#game-container');
+        let gridItems = [];
         // Clear game board            
-
         const _clearBoard = () => {
             gameContainer.innerHTML = '';
         };
 
         const createBoard = () => {
-            _clearBoard();               
+            _clearBoard();      
+            gridItems = [];         
             // Loop to create the rows
             for (let i = 0; i < 9; i++) {
                 const gridItem = document.createElement('div');
                 gridItem.classList.add('grid-item', 'inactive');
                 gridItem.setAttribute('data-index', i);
                 gameContainer.appendChild(gridItem);
+                gridItems.push(gridItem);
                 gridItem.innerHTML = '1';
             }
         }      
         // Return it so I can call it later
-        return { createBoard };
+        return { createBoard, gridItems };
     })();
 
-    // Create Player Factory Function
-    const createPlayer = (name = 'Anonymous', symbol = 'X') => {
-        let score = 0;
-        return {
-            name,
-            symbol,
-            score,
-            makeMove: (dataIndex, gameBoard) => {
-                if (gameBoard[dataIndex] === null) {
-                    gameBoard[dataIndex] = symbol;
-                    return true;
+
+    const playerAICreation = (() => {
+           // Create Player Factory Function
+        const createPlayer = (name = 'Anonymous', symbol = 'X') => {
+            let score = 0;
+            return {
+                name,
+                symbol,
+                score,
+                makeMove: (dataIndex, gameBoard) => {
+                    if (gameBoard[dataIndex] === null) {
+                        gameBoard[dataIndex] = symbol;
+                        return true; // move successful
+                    }
+                    return false; //move failed, spot occupied
                 }
-                return false;
             }
         }
-    }
-    // If no player 2, use this as an AI factory function
-    const createEasyAI = () => {
 
-    }   
+        let lastRandomIndex;
+        // If no player 2, use this for easy AI
+        const easyAI = (player, gameBoard) => {
+            let randomIndex;
+            do {
+                randomIndex = Math.floor(Math.random() * 9);
+            } while (!player.makeMove(randomIndex, gameBoard));
+            gameModule.setBoard(randomIndex, player.symbol)
+        }
+        
+        const executeAI = (currentPlayer, player, gameBoard, difficulty) => {
+            console.log("Executing AI of difficulty:", difficulty);  // Debugging line
+            switch(difficulty) {
+                case 'easy':
+                    easyAI(player, gameBoard);
+                    break;
+                // Other cases for 'normal' and 'hard' will come here later
+            }
+        }
+
+        return {
+            easyAI,
+            executeAI,
+            createPlayer
+        }
+    })();
+     
 
     // This module will contain game information
     const gameModule = (() => {
@@ -184,19 +218,34 @@ document.addEventListener('DOMContentLoaded', () => {
         let player2 = null;
         let currentPlayer = null;
         const gameContainer = domElements.mainElement.querySelector('#game-container');
+        let difficulty = domHelpers.getRadioValue();
 
         const initializePlayers = () => {
-            player1 = createPlayer(domHelpers.cleanPlayer1(), "X", 0);
-            player2 = createPlayer(domHelpers.cleanPlayer2(), "O", 0);           
+            player1 = playerAICreation.createPlayer(domHelpers.cleanPlayer1(), "X", 0);
+            switch (difficulty) {
+                case 'player2': player2 = playerAICreation.createPlayer(domHelpers.cleanPlayer2(), 'O', 0); break;
+                case 'easy': player2 = playerAICreation.createPlayer('Locke', 'O', 0); break;
+                case 'normal': player2 = playerAICreation.createPlayer('Tom', 'O', 0); break;
+                case 'hard': player2 = playerAICreation.createPlayer('John', 'O', 0); break;
+                default: break;
+            }
             currentPlayer = player1;
 
-        }
+        }           
+         console.log(domHelpers.getRadioValue());//////
+         /////
+         ////
+         /////
+                        //////THIS IS MY ISSUE, I need to address this tomorrow. 
+         /////
+         /////
+
 
         const getPlayer1 = () => player1;
         const getPlayer2 = () => player2;
 
         let board = Array(9).fill(null);
-        
+
         const initilizeBoardListeners = () => {
             gameContainer.addEventListener('click', (e) => {
                 if (e.target.classList.contains('grid-item')) {
@@ -218,6 +267,10 @@ document.addEventListener('DOMContentLoaded', () => {
         //     gridItem.classList.remove('inactive');
         // };
         const setBoard = (gridItem, symbol) => {
+            if (!gridItem) {
+                console.log("Grid Item is Undefined");
+                return;
+            }
             gridItem.classList.remove('inactive');
             gridItem.innerHTML = '';
         
@@ -255,15 +308,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const oSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
                 oSvg.setAttribute("viewBox", "0 0 100 100");
                 oSvg.classList.add("symbol");
-        
-                // const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                // circle.setAttribute("cx", "50");
-                // circle.setAttribute("cy", "50");
-                // circle.setAttribute("r", "40");
-                // circle.setAttribute("stroke", "black");
-                // circle.setAttribute("stroke-width", "8");
-                // circle.setAttribute("fill", "none");
-                // circle.classList.add("handwritten");
                 const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
                 path.setAttribute("d", "M 50,50 m -45,0 a 45,45 0 1,0 90,0 a 45,45 0 1,0 -90,0");
                 path.setAttribute("stroke", "black");
@@ -279,8 +323,16 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const switchPlayer = () => {
+            difficulty = domHelpers.getRadioValue();
             currentPlayer = currentPlayer === player1 ? player2 : player1;
             
+            if (currentPlayer === player2 && difficulty !== 'player2') {
+                playerAICreation.executeAI(currentPlayer, currentPlayer, board, boardModule.gridItems, setBoard, difficulty);
+                if (!checkWin(board)) {
+                    checkTie(board);
+                }
+                switchPlayer();
+            }
         }
 
         const winIfMatched = [
@@ -362,35 +414,36 @@ document.addEventListener('DOMContentLoaded', () => {
             const radioButtons = domElements.mainElement.querySelectorAll('[name="radio"]');
             radioButtons.forEach(radio => {
                 radio.addEventListener('change', () => {
+                    difficulty = domHelpers.getRadioValue();
                     renderModule.updatePlayer2Name();
                     formControl.hideForm();
+                    console.log(domHelpers.getRadioValue());//////
+
                 });
             });
         } 
         return { initializeEventListeners }; 
     })();
-     
-    console.log(gameModule.board);
+
 
     const displayModule = (() => {
         const displayBtn = domElements.mainElement.querySelector('.confirm-name-btn');    
             const displayListener = () => { 
                 displayBtn.addEventListener('click', (e) => {             
                     e.preventDefault();
-                    if (validationModule.validPlayer1() && 
-                        validationModule.validPlayer2()) {
-                            formControl.hideForm(); 
-                            boardModule.createBoard();
-                            gameModule.initializePlayers();
-                            gameModule.initilizeBoardListeners();
-                            const currentPlayer1 = gameModule.getPlayer1();
-                            const currentPlayer2 = gameModule.getPlayer2();
+                    if (validationModule.validPlayer1() === true) {
+                            if (domHelpers.getRadioValue() !== 'player2' || validationModule.validPlayer2() === true) {
+                                formControl.hideForm(); 
+                                boardModule.createBoard();
+                                gameModule.initializePlayers();
+                                gameModule.initilizeBoardListeners();
+                                renderModule.renderPlayerInfo();
+                            }
                         } 
-                    renderModule.renderPlayerInfo();
                 });
             };   
         return { displayListener }
     })();
     displayModule.displayListener();
     eventListenerModule.initializeEventListeners();
-});//
+});
