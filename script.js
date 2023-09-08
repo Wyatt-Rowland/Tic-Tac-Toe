@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const createBoard = () => {
             _clearBoard();      
-            gridItems = [];         
+            gridItems.length = 0;         
             // Loop to create the rows
             for (let i = 0; i < 9; i++) {
                 const gridItem = document.createElement('div');
@@ -161,8 +161,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 gridItem.innerHTML = '1';
             }
         }      
+
+        const getGridItems = () => {
+            return gridItems;
+        }
         // Return it so I can call it later
-        return { createBoard, gridItems };
+        return { createBoard, getGridItems };
     })();
 
 
@@ -187,26 +191,23 @@ document.addEventListener('DOMContentLoaded', () => {
         let lastRandomIndex;
         // If no player 2, use this for easy AI
         const easyAI = (player, gameBoard) => {
-            let randomIndex;
-            do {
-                randomIndex = Math.floor(Math.random() * 9);
-            } while (!player.makeMove(randomIndex, gameBoard));
-            gameModule.setBoard(randomIndex, player.symbol)
+            setTimeout(() => {
+                let gridItems = boardModule.getGridItems();
+                console.log("I am executing");
+                let randomIndex;
+                do {
+                    randomIndex = Math.floor(Math.random() * 9);
+                } while (!player.makeMove(randomIndex, gameBoard));
+                const gridItem = gridItems[randomIndex];
+
+                gameModule.setBoard(gridItem, player.symbol);
+            }, 1000);
+                
         }
-        
-        const executeAI = (currentPlayer, player, gameBoard, difficulty) => {
-            console.log("Executing AI of difficulty:", difficulty);  // Debugging line
-            switch(difficulty) {
-                case 'easy':
-                    easyAI(player, gameBoard);
-                    break;
-                // Other cases for 'normal' and 'hard' will come here later
-            }
-        }
+       
 
         return {
             easyAI,
-            executeAI,
             createPlayer
         }
     })();
@@ -325,15 +326,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const switchPlayer = () => {
             difficulty = domHelpers.getRadioValue();
             currentPlayer = currentPlayer === player1 ? player2 : player1;
+            console.log(`Current player is ${currentPlayer.name} with symbol ${currentPlayer.symbol}`);  // Debugging line
+
             
             if (currentPlayer === player2 && difficulty !== 'player2') {
-                playerAICreation.executeAI(currentPlayer, currentPlayer, board, boardModule.gridItems, setBoard, difficulty);
+                executeAI(currentPlayer, currentPlayer, board, difficulty);
                 if (!checkWin(board)) {
                     checkTie(board);
                 }
                 switchPlayer();
             }
         }
+ 
+        const executeAI = (currentPlayer, player, gameBoard, difficulty) => {
+            console.log("Executing AI of difficulty:", difficulty);  // Debugging line
+            switch(difficulty) {
+                case 'easy':
+                    playerAICreation.easyAI(player, gameBoard);
+                    break;
+                // Other cases for 'normal' and 'hard' will come here later
+            }
+        }
+
 
         const winIfMatched = [
             [0, 1, 2],
