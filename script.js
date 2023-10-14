@@ -160,13 +160,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 gridItems.push(gridItem);
                 gridItem.innerHTML = '1';
             }
-        }      
+        } 
 
         const getGridItems = () => {
             return gridItems;
         }
-        // Return it so I can call it later
-        return { createBoard, getGridItems };
+        const getEmptyGridCells = (currentBoard) => {
+            return currentBoard.map((cell, idx) => (cell === null) ? idx : null).filter(idx => idx !== null);
+        }
+
+        return { createBoard, getGridItems, getEmptyGridCells };
     })();
 
 
@@ -188,11 +191,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        let gridItems = boardModule.getGridItems();
         let lastRandomIndex;
         // If no player 2, use this for easy AI
         const easyAI = (player, gameBoard) => {
             setTimeout(() => {
-                let gridItems = boardModule.getGridItems();
                 console.log("I am executing");
                 let randomIndex;
                 do {
@@ -201,15 +204,90 @@ document.addEventListener('DOMContentLoaded', () => {
                 const gridItem = gridItems[randomIndex];
 
                 gameModule.setBoard(gridItem, player.symbol);
-            }, 1000);
-                
+            }, 1000);   
         }
-       
+        const hardAI = (player, board) => {
+            // Ensure the board and player are defined
+            if (!board || !player) {
+                console.error("Board or player not defined");
+                return;
+            }
+            const emptyCells = boardModule.getEmptyGridCells(board);
+            console.log("Available empty cells for AI:", emptyCells);
+
+            let playerSymbol = player.symbol;
+            let opponentSymbol = playerSymbol === 'X' ? 'O' : 'X';
+
+            let bestVal = -Infinity;
+            let bestMove = -1;
+
+            for (let i = 0; i < 9; i++) {
+                if (board[i] === null) {
+                    // Use a tempBoard for simulation
+                    let tempBoard = [...board];
+
+                    tempBoard[i] = playerSymbol;
+                    let moveVal = minMaxModule.minimax(tempBoard, 0, false, player.symbol, opponentSymbol);
+                    console.log(`Move Value for index ${i}: ${moveVal}`);
+
+                    tempBoard[i] = null;
+
+                    if (moveVal > bestVal) {
+                        bestMove = i;
+                        bestVal = moveVal;
+                    }
+                }
+            }
+            if (bestMove !== -1) {
+                // Use the actual board to make the move. 
+                player.makeMove(bestMove, board);
+                const gridItems = boardModule.getGridItems();  // Assuming you have this function
+                const gridItem = gridItems[bestMove];
+                gameModule.setBoard(gridItem, player.symbol);
+                console.log("AI chose index:", bestMove);
+
+            }        
+        };
 
         return {
             easyAI,
+            hardAI,
             createPlayer
         }
+    })();
+
+    const minMaxModule = (() => {
+        const minimax = (board, depth, maximizing, playerSymbol, opponentSymbol) => {
+            const score = gameModule.checkWin(board);
+            const availableCells = boardModule.getEmptyGridCells(board);
+            let tempBoard = [...board];
+    
+            if (score === 10) return score - depth;
+            if (score === -10) return score + depth;
+            
+            if (gameModule.checkTie(board)) return 0;
+    
+            if (maximizing) {
+                let best = -Infinity;
+                for (let i = 0; i < availableCells.length; i++) {
+                    let cellIndex = availableCells[i];
+                    tempBoard[cellIndex] = playerSymbol;
+                    best = Math.max(best, minimax(tempBoard, depth + 1, false, playerSymbol, opponentSymbol));
+                    tempBoard[cellIndex] = null;
+                }
+                return best;
+            } else {
+                let best = Infinity;
+                for (let i = 0; i < availableCells.length; i++) {
+                    let cellIndex = availableCells[i];
+                    tempBoard[cellIndex] = opponentSymbol;
+                    best = Math.min(best, minimax(tempBoard, depth + 1, true, playerSymbol, opponentSymbol));
+                    tempBoard[cellIndex] = null;
+                }
+                return best;
+            }
+        }
+        return { minimax };
     })();
      
 
@@ -331,21 +409,30 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (currentPlayer === player2 && difficulty !== 'player2') {
                 executeAI(currentPlayer, currentPlayer, board, difficulty);
-                if (!checkWin(board)) {
-                    checkTie(board);
-                }
-                switchPlayer();
+                // if (!checkWin(board)) {
+                //     checkTie(board);
+                // }
             }
         }
  
         const executeAI = (currentPlayer, player, gameBoard, difficulty) => {
-            console.log("Executing AI of difficulty:", difficulty);  // Debugging line
-            switch(difficulty) {
-                case 'easy':
-                    playerAICreation.easyAI(player, gameBoard);
-                    break;
-                // Other cases for 'normal' and 'hard' will come here later
-            }
+            console.log("Board before AI move:", [...gameBoard]);  // Copy the array to prevent mutation during logging
+
+            setTimeout(() => {
+                console.log("Executing AI of difficulty:", difficulty);  // Debugging line
+                switch(difficulty) {
+                    case 'easy':
+                        playerAICreation.easyAI(player, gameBoard);
+                        break;
+                    case 'normal':
+                        break;
+                    case 'hard':
+                        playerAICreation.hardAI(currentPlayer, gameBoard);
+                        break;
+                    // Other cases for 'normal' and 'hard' will come here later
+                }
+                switchPlayer();
+            }, 500);
         }
 
 
@@ -363,33 +450,40 @@ document.addEventListener('DOMContentLoaded', () => {
         const checkWin = (gameBoard) => {
             for (let i = 0; i < winIfMatched.length; i++) {
                 const [a, b, c] = winIfMatched[i];
-                if (gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c]) {         
-
-                    const gameContainer = domElements.mainElement.querySelector('#game-container');
-                    const winningCells = [gameContainer.childNodes[a], gameContainer.childNodes[b], gameContainer.childNodes[c]];
-        
-                    winningCells.forEach(cell => {
-                        cell.style.backgroundColor = 'green';
-                    });
-
-                    endGame(true, gameBoard[a]);
-                    setTimeout(() => {
-                        renderModule.showWinnerIcon(gameBoard[a]);
-                    }, 1000)
-                    return true;
+                if (gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c]) {
+                    handleWin([a, b, c], gameBoard[a]); 
+                    if (gameBoard[a] === 'X') {
+                        return -10;
+                    } else {
+                        return 10;
+                    }
                 }
             }
-            return false;
+            return 0;
         }
-
+        
+        const handleWin = (winningSequence, winnerSymbol) => {
+            const gameContainer = domElements.mainElement.querySelector('#game-container');
+            const winningCells = winningSequence.map(index => gameContainer.childNodes[index]);
+        
+            // winningCells.forEach(cell => {
+            //     cell.style.backgroundColor = 'green';
+            // });
+        
+            endGame(true, winnerSymbol);
+            // setTimeout(() => {
+            //     renderModule.showWinnerIcon(winnerSymbol);
+            // }, 1000);
+        }
         const checkTie = (gameBoard) => {
-            if (gameBoard.every(cell => cell != null)) {
-                endGame(false);
-                return true;
-            }
-            return false;
-        }
+            // if (!checkWin(gameBoard) && gameBoard.every(cell => cell != null)) {
+            //     endGame(false);
+            //     return true;
+            // }
+            // return false;
+        };
 
+        
         const endGame = (isWin, winnerSymbol = null) => {
             if (isWin) {
                 const winner = winnerSymbol === player1.symbol ? player1 : player2;
@@ -460,4 +554,4 @@ document.addEventListener('DOMContentLoaded', () => {
     })();
     displayModule.displayListener();
     eventListenerModule.initializeEventListeners();
-});
+}); 
