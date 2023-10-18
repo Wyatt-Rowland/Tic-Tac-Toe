@@ -35,9 +35,13 @@ document.addEventListener('DOMContentLoaded', () => {
         winnerText.textContent = "Its a draw!";
         winnerBanner.classList.add('active');
       };
+      const hideWinnerIcon = () => {
+        winnerBanner.classList.remove('active');
+      }
       return {
           showWinnerIcon,
-          showTieIcon
+          showTieIcon,
+          hideWinnerIcon
       }
   })();
 
@@ -83,6 +87,9 @@ document.addEventListener('DOMContentLoaded', () => {
               name,
               symbol,
               makeMove: (dataIndex, gameBoard) => {
+                if (gameModule.isGameOver === true) {
+                    return
+                }
                   if (gameBoard[dataIndex] === null) {
                       gameBoard[dataIndex] = symbol;
                       return true; // move successful
@@ -107,6 +114,21 @@ document.addEventListener('DOMContentLoaded', () => {
               gameModule.setBoard(gridItem, player.symbol);
           }, 1000);   
       }
+      
+      // Initialize count here so that it won't reset to 1.
+      let count = 1;
+      const normalAI = (player, board) => {
+        if (count % 2) {
+            easyAI(player, board);
+            console.log('ez')
+            count++;
+        } else {
+            hardAI(player, board);
+            console.log('hard')
+            count++;
+        }
+      }
+
       const hardAI = (player, board) => {
           // Ensure the board and player are defined
           if (!board || !player) {
@@ -129,16 +151,13 @@ document.addEventListener('DOMContentLoaded', () => {
                   tempBoard[i] = playerSymbol;
                   let moveVal = minMaxModule.minimax(tempBoard, 0, false, player.symbol, opponentSymbol);
                   console.log(`Move Value for index ${i}: ${moveVal}`);
-
-                  tempBoard[i] = null;
-                  if (board[4] === null) {
-                    bestMove = 4;
-                  } else {
-                    if (moveVal > bestVal) {
+                  
+                  if (moveVal > bestVal) {
                         bestMove = i;
                         bestVal = moveVal;
                     }
-                  }   
+                  tempBoard[i] = null;
+                  
               }
           }
           if (bestMove !== -1) {
@@ -157,6 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       return {
           easyAI,
+          normalAI,
           hardAI,
           createPlayer
       }
@@ -328,6 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
                       playerAICreation.easyAI(player, gameBoard);
                       break;
                   case 'normal':
+                    playerAICreation.normalAI(currentPlayer, gameBoard);
                       break;
                   case 'hard':
                       playerAICreation.hardAI(currentPlayer, gameBoard);
@@ -408,11 +429,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
       }
 
-      
+      let isGameOver = false;
+
       const endGame = (isWin, winnerSymbol = null) => {
+        isGameOver = true;
           if (isWin) {
               const winner = winnerSymbol === player1.symbol ? player1 : player2;
-              winner.score++;
               return true;
           } else if (checkTie) {
               console.log('Its a draw');
@@ -421,15 +443,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const resetGame = () => {
+        //Reset game over
+        isGameOver = false;
         // reset the board array
         gameBoard = Array(9).fill(null);
         // update the DOM
-        cells.forEach(cell => cell.innerHTML = '');
-      }
+        boardModule.createBoard();
+        renderModule.hideWinnerIcon();
+    };
 
       return {
           initializePlayers,
           board,
+          isGameOver,
           getPlayer1,
           getPlayer2,
           initilizeBoardListeners,
