@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
               symbol,
               makeMove: (dataIndex, gameBoard) => {
                 if (gameModule.isGameOver === true) {
-                    return
+                    return false;
                 }
                   if (gameBoard[dataIndex] === null) {
                       gameBoard[dataIndex] = symbol;
@@ -103,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
       let lastRandomIndex;
       // If no player 2, use this for easy AI
       const easyAI = (player, gameBoard) => {
-          setTimeout(() => {
               console.log("I am executing");
               let randomIndex;
               do {
@@ -111,8 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
               } while (!player.makeMove(randomIndex, gameBoard));
               const gridItem = gridItems[randomIndex];
 
-              gameModule.setBoard(gridItem, player.symbol);
-          }, 1000);   
+              gameModule.setBoard(gridItem, player.symbol); 
       }
       
       // Initialize count here so that it won't reset to 1.
@@ -224,7 +222,12 @@ document.addEventListener('DOMContentLoaded', () => {
       let player2 = null;
       let currentPlayer = null;
       const gameContainer = domElements.mainElement.querySelector('#game-container');
-      let difficulty = domHelpers.getRadioValue();
+      let difficulty = domHelpers.getRadioValue();      
+      // Flags to protect game logic
+      let isGameOver = false;
+      let isAITurn = false; 
+
+
 
       const initializePlayers = () => {
             player1 = playerAICreation.createPlayer(player1, 'X', 0);
@@ -248,6 +251,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const initilizeBoardListeners = () => {
           gameContainer.addEventListener('click', (e) => {
               if (e.target.classList.contains('grid-item')) {
+                  if (isAITurn === true) {
+                    return;
+                  }
                   const dataIndex = e.target.getAttribute('data-index');
                   console.log('currentPlayer:', currentPlayer);
                   console.log('dataIndex:', dataIndex);
@@ -325,11 +331,13 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       const switchPlayer = () => {
+          if (isAITurn) return; // Prevent switch if it's AI's turn
           difficulty = domHelpers.getRadioValue();
           currentPlayer = currentPlayer === player1 ? player2 : player1;
 
           
           if (currentPlayer === player2 && difficulty !== 'player2') {
+              isAITurn = true;
               executeAI(currentPlayer, currentPlayer, board, difficulty);
               // if (!checkWin(board)) {
               //     checkTie(board);
@@ -358,8 +366,9 @@ document.addEventListener('DOMContentLoaded', () => {
               if (!gameModule.checkWin(tempBoard)) {
                 gameModule.checkTie(tempBoard);
               }
+              isAITurn = false;
               switchPlayer();
-          }, 800);
+          }, 500);
       }
 
 
@@ -429,7 +438,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
       }
 
-      let isGameOver = false;
 
       const endGame = (isWin, winnerSymbol = null) => {
         isGameOver = true;
@@ -455,7 +463,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return {
           initializePlayers,
           board,
-          isGameOver,
           getPlayer1,
           getPlayer2,
           initilizeBoardListeners,
@@ -465,7 +472,8 @@ document.addEventListener('DOMContentLoaded', () => {
           checkWin,
           checkTie,
           resetGame,
-          currentPlayer
+          currentPlayer,
+          get isGameOver() { return isGameOver; },
       }
   })();
 
