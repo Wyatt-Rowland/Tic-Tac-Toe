@@ -100,16 +100,20 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       let gridItems = boardModule.getGridItems();
-      let lastRandomIndex;
       // If no player 2, use this for easy AI
       const easyAI = (player, gameBoard) => {
               console.log("I am executing");
+              if (gameModule.isGameOver === true) {
+                return;
+              }
               let randomIndex;
               do {
                   randomIndex = Math.floor(Math.random() * 9);
               } while (!player.makeMove(randomIndex, gameBoard));
               const gridItem = gridItems[randomIndex];
-
+              if (!gameModule.checkWin(gameBoard)) {
+                gameModule.checkTie(gameBoard);
+              }
               gameModule.setBoard(gridItem, player.symbol); 
       }
       
@@ -230,12 +234,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
       const initializePlayers = () => {
-            player1 = playerAICreation.createPlayer(player1, 'X', 0);
+            player1 = playerAICreation.createPlayer(player1, 'X');
           switch (difficulty) {
-              case 'player2': player2 = playerAICreation.createPlayer(player2, 'O', 0); break;
-              case 'easy': player2 = playerAICreation.createPlayer('Locke', 'O', 0); break;
-              case 'normal': player2 = playerAICreation.createPlayer('Tom', 'O', 0); break;
-              case 'hard': player2 = playerAICreation.createPlayer('John', 'O', 0); break;
+              case 'player2': player2 = playerAICreation.createPlayer(player2, 'O'); break;
+              case 'easy': player2 = playerAICreation.createPlayer('Locke', 'O'); break;
+              case 'normal': player2 = playerAICreation.createPlayer('Tom', 'O'); break;
+              case 'hard': player2 = playerAICreation.createPlayer('John', 'O'); break;
               default: break;
           }
           currentPlayer = player1;
