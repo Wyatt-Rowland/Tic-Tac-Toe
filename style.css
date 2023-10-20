@@ -71,7 +71,7 @@ body {
 }
 #new-game-btn, 
 #radio {
-    width: 40%;
+    width: 50%;
     max-width: 200px;
 }
 
@@ -125,7 +125,7 @@ body {
         right: 30px;
     }
     #new-game-btn, #radio {
-        font-size: 1.3em;
+        font-size: 1.5em;
     }
     .winner-text {
         font-size: 0.6em;
