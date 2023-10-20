@@ -113,8 +113,8 @@ body {
 }
 @media (min-width: 300px) {
     .wrapper-container {
-        width: 45%;
-        padding-top: 45%;
+        width: 70%;
+        padding-top: 70%;
     }
     .player1 {
         top: 20em;
@@ -137,8 +137,8 @@ body {
 }
 @media (min-width: 600px) {
     .wrapper-container {
-        width: 35%;
-        padding-top: 35%;
+        width: 65%;
+        padding-top: 65%;
     }
     #new-game-btn, #radio {
         width: 40vw; 
@@ -161,8 +161,8 @@ body {
 }
 @media (min-width: 900px) {
     .wrapper-container {
-        width: 35%;
-        padding-top: 35%;
+        width: 55%;
+        padding-top: 55%;
     }
     .winner-text {
         font-size: 1.8em;
