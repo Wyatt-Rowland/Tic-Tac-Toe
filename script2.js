@@ -1,10 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-  // This will get dom elements one time
-  const domElements = {
+    // DOM elements cache for more efficient access.
+    const domElements = {
       mainElement: document.getElementById('main')
   };
-  // Get all helpers value here so I don't need to type querySelector as much
+    // Helper functions to reduce repetitive DOM access.
   const domHelpers = (() => {
       const queryMain = (selector) => document.getElementById('main').querySelector(selector);
       const resetBtn = () => queryMain('#reset-button');
@@ -14,11 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
       
   })();
 
-  // Creates players displays, and shows their names and score
-  const renderModule = (() => {
+    // Renders game outcomes such as the winner or a tie.
+    const renderModule = (() => {
       const winnerBanner = domElements.mainElement.querySelector('#winner-banner');
       const winnerText = domElements.mainElement.querySelector('#winner-text');
 
+    // Display the winner's symbol in the banner.  
       const showWinnerIcon = (winnerSymbol) => {
           let winnerName = '';
           if (gameModule.getPlayer1().symbol === winnerSymbol) {
@@ -31,10 +32,12 @@ document.addEventListener('DOMContentLoaded', () => {
           // Add active to display banner
           winnerBanner.classList.add('active');
       }
+      // Display tie message.
       const showTieIcon = () => {
         winnerText.textContent = "Its a draw!";
         winnerBanner.classList.add('active');
       };
+      // Hide banner for resetting the game.
       const hideWinnerIcon = () => {
         winnerBanner.classList.remove('active');
       }
@@ -45,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
   })();
 
-  // This will be a module that will contain the gameBoard
+  // Module that handles the display board.
   const boardModule = (() => {
       const gameContainer = domElements.mainElement.querySelector('#game-container');
       let gridItems = [];
@@ -54,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
           gameContainer.innerHTML = '';
       };
 
+      // Creates the board and adds tags to each cell.
       const createBoard = () => {
           _clearBoard();      
           gridItems.length = 0;         
@@ -78,15 +82,15 @@ document.addEventListener('DOMContentLoaded', () => {
       return { createBoard, getGridItems, getEmptyGridCells };
   })();
 
-
+  // Module to create AI and players. 
   const playerAICreation = (() => {
          // Create Player Factory Function
       const createPlayer = (name = 'Anonymous', symbol = 'X') => {
           let score = 0;
           return {
-              name,
+              name, // Name ended up being removed, but I didn't delete it incase I add it in the future. 
               symbol,
-              makeMove: (dataIndex, gameBoard) => {
+              makeMove: (dataIndex, gameBoard) => { 
                 if (gameModule.isGameOver === true) {
                     return false;
                 }
@@ -99,8 +103,9 @@ document.addEventListener('DOMContentLoaded', () => {
           }
       }
 
+      // Gets empty cells to make moves
       let gridItems = boardModule.getGridItems();
-      // If no player 2, use this for easy AI
+      // easyAI just chooses a random cell
       const easyAI = (player, gameBoard) => {
               console.log("I am executing");
               if (gameModule.isGameOver === true) {
@@ -119,6 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Initialize count here so that it won't reset to 1.
       let count = 1;
+      // normalAI mixes the two other difficulties to allow the player to win, but it will at least be a little harder.
       const normalAI = (player, board) => {
         if (count % 2) {
             easyAI(player, board);
@@ -129,8 +135,9 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('hard')
             count++;
         }
-      }
+      };
 
+      // hardAI uses the minimax algorithm so it should be unbeatable. 
       const hardAI = (player, board) => {
           // Ensure the board and player are defined
           if (!board || !player) {
@@ -184,6 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
   })();
 
+  // Minimax logic
   const minMaxModule = (() => {
       const minimax = (board, depth, maximizing, playerSymbol, opponentSymbol) => {
           const score = gameModule.evaluateBoard(board);
@@ -220,19 +228,21 @@ document.addEventListener('DOMContentLoaded', () => {
   })();
    
 
-  // This module will contain game information
+  // Game logic module.
   const gameModule = (() => {
+    // Initialize all players immediately. 
       let player1 = null;
       let player2 = null;
       let currentPlayer = null;
       const gameContainer = domElements.mainElement.querySelector('#game-container');
+      // Get difficulty so it can make the right move.
       let difficulty = domHelpers.getRadioValue();      
       // Flags to protect game logic
       let isGameOver = false;
       let isAITurn = false; 
 
 
-
+      // Sets up players based on radio value.
       const initializePlayers = () => {
             player1 = playerAICreation.createPlayer(player1, 'X');
           switch (difficulty) {
@@ -250,8 +260,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const getPlayer1 = () => player1;
       const getPlayer2 = () => player2;
 
+
+      // Create the logic board.
       let board = Array(9).fill(null);
 
+      // Add listeners to all cells.
       const initilizeBoardListeners = () => {
           gameContainer.addEventListener('click', (e) => {
               if (e.target.classList.contains('grid-item')) {
@@ -263,6 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   console.log('dataIndex:', dataIndex);
                   console.log('board:', board);
                   const moveSuccess = currentPlayer.makeMove(dataIndex, board);
+                  // Check for a win after every single move. 
                   if (moveSuccess) {
                       setBoard(e.target, currentPlayer.symbol);
                       if (!checkWin(board)) {
@@ -274,10 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
           });
       }
 
-      // const setBoard = (gridItem, symbol) => {
-      //     gridItem.innerHTML = symbol;
-      //     gridItem.classList.remove('inactive');
-      // };
+      // SVGs to make the game look a little prettier.
       const setBoard = (gridItem, symbol) => {
           if (!gridItem) {
               console.log("Grid Item is Undefined");
@@ -334,21 +345,24 @@ document.addEventListener('DOMContentLoaded', () => {
           }
       };
 
+      // Switches between players and AI. It won't let the player make a move if its the AIs turn. 
       const switchPlayer = () => {
-          if (isAITurn) return; // Prevent switch if it's AI's turn
+          // Prevent switch if it's AI's turn
+          if (isAITurn) return; 
+          // Fetch difficulty setting from DOM.
           difficulty = domHelpers.getRadioValue();
+          // Toggle between player1 and player2.
           currentPlayer = currentPlayer === player1 ? player2 : player1;
-
           
+          // If the current player is player2 and the difficulty isn't set to player vs player,
+          // execute the AI's move.
           if (currentPlayer === player2 && difficulty !== 'player2') {
               isAITurn = true;
               executeAI(currentPlayer, currentPlayer, board, difficulty);
-              // if (!checkWin(board)) {
-              //     checkTie(board);
-              // }
           }
       }
 
+      // Function that lets the AI execute its move based on difficulty.
       const executeAI = (currentPlayer, player, gameBoard, difficulty) => {
           console.log("Board before AI move:", [...gameBoard]);  // Copy the array to prevent mutation during logging
           
@@ -370,12 +384,13 @@ document.addEventListener('DOMContentLoaded', () => {
               if (!gameModule.checkWin(tempBoard)) {
                 gameModule.checkTie(tempBoard);
               }
+              // After AI made its move, allow the player to switch.
               isAITurn = false;
               switchPlayer();
           }, 500);
       }
 
-
+      // Winning combinations for a standard Tic Tac Toe game.
       const winIfMatched = [
           [0, 1, 2],
           [3, 4, 5],
@@ -387,6 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
           [2, 4, 6]
       ]
 
+      // Evaluates the board for wins, loses, and ties. This is for the minimax algorithm.
       const evaluateBoard = (board) => {
         // Check for win
         for (let i = 0; i < winIfMatched.length; i++) {
@@ -405,6 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
       };
 
+      // Function to check for a winner.
       const checkWin = (gameBoard) => {
         for (let i = 0; i < winIfMatched.length; i++) {
             const [a, b, c] = winIfMatched[i];
@@ -415,7 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return false;  // No winner yet
     };
-      
+      // Handles win depending on which symbol wins.
       const handleWin = (winningSequence, winnerSymbol) => {
           const gameContainer = domElements.mainElement.querySelector('#game-container');
           const winningCells = winningSequence.map(index => gameContainer.childNodes[index]);
@@ -429,6 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
               renderModule.showWinnerIcon(winnerSymbol);
           }, 1000);
       }
+      // Checks for tie.
       const checkTie = (gameBoard) => {
         if (gameBoard.every(cell => cell !== null)) {
             handleTie();
@@ -436,13 +454,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return false;  // No tie
     };
+    // Handles tie logic. 
       const handleTie = () => {
         endGame(false);
         renderModule.showTieIcon();
         return true;
       }
 
-
+      // If a win/tie is detected, it stops the moves, and returns a winner. 
       const endGame = (isWin, winnerSymbol = null) => {
         isGameOver = true;
           if (isWin) {
@@ -454,11 +473,13 @@ document.addEventListener('DOMContentLoaded', () => {
           }
       }
 
+      // Resets the game and all its logic. 
       const resetGame = () => {
         //Reset flags
         isGameOver = false;
         isAITurn = false;
 
+        // Reset current player
         currentPlayer = player1;
 
         // reset the board array
@@ -466,9 +487,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // update the DOM
         boardModule.createBoard();
         renderModule.hideWinnerIcon();
-        // 
-        displayModule.displayListener();
-        eventListenerModule.initializeEventListeners();
       };
 
       return {
@@ -488,6 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
   })();
 
+  // Module to add listeners to teh radio and reset button.
   const eventListenerModule = (() => {
     const resetBtnListener = () => {
         domHelpers.resetBtn().addEventListener('click', function() {
@@ -510,6 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return { initializeEventListeners, resetBtnListener }; 
     })();
 
+    // Module to kick things off and start the game after hitting new game button.
     const displayModule = (() => {
         const newGameBtn = domElements.mainElement.querySelector('#new-game-btn');
         const displayListener = () => { 
@@ -524,6 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return { displayListener }
     })();
 
+    // Call previous two functions to prime the game. 
     displayModule.displayListener();
     eventListenerModule.initializeEventListeners();
 });
