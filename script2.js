@@ -455,14 +455,21 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const resetGame = () => {
-        //Reset game over
+        //Reset flags
         isGameOver = false;
+        isAITurn = false;
+
+        currentPlayer = player1;
+
         // reset the board array
-        gameBoard = Array(9).fill(null);
+        board = Array(9).fill(null);
         // update the DOM
         boardModule.createBoard();
         renderModule.hideWinnerIcon();
-    };
+        // 
+        displayModule.displayListener();
+        eventListenerModule.initializeEventListeners();
+      };
 
       return {
           initializePlayers,
@@ -485,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetBtnListener = () => {
         domHelpers.resetBtn().addEventListener('click', function() {
             gameModule.resetGame();
-            domHelpers.resetBtn.classList.remove('active');
+            // domHelpers.resetBtn.classList.remove('active');
         });
     };
 
