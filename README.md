@@ -3,7 +3,7 @@ Odin Project Tic Tac Toe
 
 This was made for the module design lesson. Modular design is different from modules in javascript. 
 
-You can view this page live at: https://vaccinaldig3710.github.io/Tic-Tac-Toe/
+You can view this page live at: https://Wyatt-Rowland.github.io/Tic-Tac-Toe/
 
 I should go back and clean this code up. It is a mess, as I was trying to learn a lot of different things while I was making it. It was a very frustrating project. 
 I was able to use a minmax algorithm for my hard and normalai though, which I think is something.
